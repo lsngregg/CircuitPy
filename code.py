@@ -44,9 +44,11 @@ display_bus = displayio.I2CDisplay(i2c)             # set the display to the i2c
 Initialize the display
 
 End goal is to display the Lux/IR/and maybe raw luminosity
-Bonus: add a battery level at top right corner
-Bouns Round 2: utilize the display buttons to maybe cycle
-    through other sensor data
+
+    Bonus: add a battery level at top right corner
+
+    Bouns Round 2: utilize the display buttons to maybe cycle
+        through other sensor data
 
 """
 
@@ -79,8 +81,41 @@ inner_sprite = displayio.TileGrid(
 )
 splash.append(inner_sprite)
 
+#
+#   Data Aquistion?
+#
+
+
+
+
+"""
+Now we need to make the text areas where the sensor data will go
+
+I honestly don't know if I need to set the text strings first
+or the display areas.
+Do I need a "Do while" loop?
+
+"""
+
+lux_text = "Lux: "
+ir_text = "IR: "
+counts_text = "Raw Counts: "
+
 # Make text areas for displaying senssor info
-lux_area = 
+#   Lux, IR, Raw Counts
+lux_area = label.Label(terminalio.FONT, text=lux_text, color=0xFFFFFF, x=8, y=8)
+ir_area = label.Label(terminalio.FONT, text=ir_text, color=0xFFFFFF, x=10, y=8)
+counts_area = label.Label(terminalio.FONT, text=counts_text, color=0xFFFFFF, x=12, y=8)
+
+# The next step is to do a splash.append() to get everyting to display the text.
+# But I'm realizing now that I don't want the program to have to redraw those areas
+#   evertime the sensor gets a new reading. But also I have no idea how other people
+#   or what's the most efficient method for doing this.
+# So for now I'm going to do the splash.append() just to see if I've done the
+#   display part right.
+
+
+
 
 
 while True:
