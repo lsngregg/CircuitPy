@@ -9,11 +9,15 @@ import terminalio
 
 """
 Initialize the i2c components
+
+    I still have no idea how to setup two different
+        i2c components
+
 """
 
 # This is for the OLED
-i2c = board.I2C()
-display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
+i2c = board.I2C()                                                   # create i2c object
+display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)        # Not sure if the address specification is needed
 
 # How do for TSL?
 
