@@ -53,27 +53,13 @@ inner_sprite = displayio.TileGrid(
 )
 splash.append(inner_sprite)
 
-# Draw some white squares
-sm_bitmap = displayio.Bitmap(8, 8, 1)
-sm_square = displayio.TileGrid(sm_bitmap, pixel_shader=color_palette, x=58, y=17)
-splash.append(sm_square)
-
-med_bitmap = displayio.Bitmap(16, 16, 1)
-med_square = displayio.TileGrid(med_bitmap, pixel_shader=color_palette, x=71, y=15)
-splash.append(med_square)
-
-lrg_bitmap = displayio.Bitmap(32, 32, 1)
-lrg_square = displayio.TileGrid(lrg_bitmap, pixel_shader=color_palette, x=91, y=28)
-splash.append(lrg_square)
-
 # Draw some label text
-text1 = "0123456789ABCDEF123456789AB"  # overly long to see where it clips
-text_area = label.Label(terminalio.FONT, text=text1, color=0xFFFFFF, x=8, y=8)
+text1 = "Lux: "  # overly long to see where it clips
+text_area = label.Label(terminalio.FONT, text=text1, color=0xFFFFFF, x=5, y=8)
 splash.append(text_area)
-text2 = "SH1107"
-text_area2 = label.Label(
-    terminalio.FONT, text=text2, scale=2, color=0xFFFFFF, x=9, y=44
-)
+text2 = "IR: "
+text_area2 = label.Label(terminalio.FONT, text=text2, color=0xFFFFFF, x=5, y=18)
+
 splash.append(text_area2)
 
 while True:
