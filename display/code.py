@@ -6,21 +6,24 @@ Author: Mark Roberts (mdroberts1243) from Adafruit code
 This test will initialize the display using displayio and draw a solid white
 background, a smaller black rectangle, miscellaneous stuff and some white text.
 
+Hacked up by Ellison Gregg
 """
 
 
+import time
 import board
 import displayio
 import terminalio
-
-# can try import bitmap_label below for alternative
-from adafruit_display_text import label
+import adafruit_tsl2591
 import adafruit_displayio_sh1107
+
+
+from adafruit_display_text import label
 
 displayio.release_displays()
 # oled_reset = board.D9
 
-# Use for I2C
+# Define display I2C address
 i2c = board.I2C()
 display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
 

@@ -3,45 +3,56 @@ So this is where we're going to put together the "main" code for utilizing
     the display and the light sensor. End goal is to just output sensor
     readings to the display. This will serve as ground work for making
     a light meter for use with cameras.
-    
+
  --- Components ---
 1) Adafruit RP2040 Feather
 2) Adafruit 128x64 OLED Featherwing
 3) Adafruit TSL2591 Light Sensor
- 
+
  Right now, i think the idea will be to initialize the display
     and make sure that is working before tyring to pull info
     from the light sensor.
-    
-- 8/7/21 -
- 
- Need to add in code for displaying sensor readings.
-   
+
+- 8/8/21 -
+
+Formatting changes
+
+Setting up labels for displaying sensor data
+
+testing sensor data aquisition
+
 """
 
-import board            # Currently set to the Feather RP2040
-import digitalio        # lib for digital pins
-import time             # Seems important
-import displayio
-import terminalio
-
+import board                                # Currently set to the Feather RP2040
+import time                                 # for sleep function
+import displayio                            # OLED Coms
+import terminalio                           # font?
+import adafruit_tsl2591                     # For the sensor
+import adafruit_displayio_sh1107            # For the OLED
+from adafruit_display_text import label     # displaying text on the OLED
 
 """
 Initialize the i2c components
 
-    I still have no idea how to setup two different
-        i2c components
+1) OLED
+2) TSL Sensor
 
 """
 
 # This is for the OLED
-i2c = board.I2C()                                   # create i2c object
-display_bus = displayio.I2CDisplay(i2c)             # set the display to the i2c
+# Reset/Release the display, initialize i2c bus and define the display address
 
-# How do for TSL?
+displayio.release_displays()
+
+i2c = board.I2C()
+display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
+
+# Initialize the Light sensor
+tsl = adafruit_tsl2591.TSL2591(i2c)
+
 
 """
-Initialize the display
+Initialize the display & Define label(text) areas
 
 End goal is to display the Lux/IR/and maybe raw luminosity
 
@@ -52,50 +63,12 @@ End goal is to display the Lux/IR/and maybe raw luminosity
 
 """
 
-from adafruit_display_text import label
-import adafruit_displayio_sh1107
+# Initalize display
+display = adafruit_displayio_sh1107.SH1107(display_bus, width=128, height=64)
 
-# SH1107 is vertically oriented 64x128
-WIDTH = 128
-HEIGHT = 64
-display = adafruit_displayio_sh1107.SH1107(display_bus, width=WIDTH, height=HEIGHT)
-
-
-#Make display context
+# define "splash"
 splash = displayio.Group()
 display.show(splash)
-
-color_bitmap = displayio.Bitmap(WIDTH, HEIGHT, 1)
-color_palette = displayio.Palette(1)
-color_palette[0] = 0xFFFFFF  # White
-
-bg_sprite = displayio.TileGrid(color_bitmap, pixel_shader=color_palette, x=0, y=0)
-splash.append(bg_sprite)
-
-# Draw a smaller inner rectangle in black
-inner_bitmap = displayio.Bitmap(WIDTH - BORDER * 2, HEIGHT - BORDER * 2, 1)
-inner_palette = displayio.Palette(1)
-inner_palette[0] = 0x000000  # Black
-inner_sprite = displayio.TileGrid(
-    inner_bitmap, pixel_shader=inner_palette, x=BORDER, y=BORDER
-)
-splash.append(inner_sprite)
-
-#
-#   Data Aquistion?
-#
-
-
-
-
-"""
-Now we need to make the text areas where the sensor data will go
-
-I honestly don't know if I need to set the text strings first
-or the display areas.
-Do I need a "Do while" loop?
-
-"""
 
 lux_text = "Lux: "
 ir_text = "IR: "
@@ -103,20 +76,41 @@ counts_text = "Raw Counts: "
 
 # Make text areas for displaying senssor info
 #   Lux, IR, Raw Counts
-lux_area = label.Label(terminalio.FONT, text=lux_text, color=0xFFFFFF, x=8, y=8)
-ir_area = label.Label(terminalio.FONT, text=ir_text, color=0xFFFFFF, x=10, y=8)
-counts_area = label.Label(terminalio.FONT, text=counts_text, color=0xFFFFFF, x=12, y=8)
+lux_area = label.Label(terminalio.FONT, text=lux_text, x=0, y=4)
+ir_area = label.Label(terminalio.FONT, text=ir_text, x=0, y=14)
+counts_area = label.Label(terminalio.FONT, text=counts_text, x=0, y=24)
 
-# The next step is to do a splash.append() to get everyting to display the text.
-# But I'm realizing now that I don't want the program to have to redraw those areas
-#   evertime the sensor gets a new reading. But also I have no idea how other people
-#   or what's the most efficient method for doing this.
-# So for now I'm going to do the splash.append() just to see if I've done the
-#   display part right.
+splash.append(lux_area)
+splash.append(ir_area)
+splash.append(counts_area)
 
+"""
+Main code or runtime area
+    This is where the sensor data aquistion will happen
+    and where we will update the label text.
 
+    Fun fact: you can't pass/append int's to labels.
 
+1) Get the sensor data
+2) Update the display
+3) Wait for button press before taking another reading
 
+(I don't know how to use the buttons yet)
+
+"""
+#
 
 while True:
-    pass
+
+    # Read-in lux/IR/and visible counts
+    lux = tsl.lux
+    ir = tsl.infrared
+    counts = tsl.full_spectrum
+
+    # Update display
+    lux_area.text = lux_text + str(lux)
+    ir_area.text = ir_text + str(ir)
+    counts_area.text = counts_text + str(counts)
+
+    # Do every second
+    time.sleep(1.0)
