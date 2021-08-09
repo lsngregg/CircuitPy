@@ -25,6 +25,8 @@ testing sensor data aquisition
 
 import board                                # Currently set to the Feather RP2040
 import time                                 # for sleep function
+import microcontroller                      # lib for reading rp2040 stuff
+import neopixel                             # Controlling the NeoPixel on board
 import displayio                            # OLED Coms
 import terminalio                           # font?
 import adafruit_tsl2591                     # For the sensor
@@ -62,6 +64,9 @@ End goal is to display the Lux/IR/and maybe raw luminosity
         through other sensor data
 
 """
+# define the neopixel
+pixel = neopixel.NeoPixel(board.NEOPIXEL, 1)
+pixel.brightness = 0.3
 
 # Initalize display
 display = adafruit_displayio_sh1107.SH1107(display_bus, width=128, height=64)
@@ -70,19 +75,23 @@ display = adafruit_displayio_sh1107.SH1107(display_bus, width=128, height=64)
 splash = displayio.Group()
 display.show(splash)
 
+# Define strings for display
 lux_text = "Lux: "
 ir_text = "IR: "
 counts_text = "Raw Counts: "
+cpu_temp_text = "CPU Temp: "
 
 # Make text areas for displaying senssor info
 #   Lux, IR, Raw Counts
 lux_area = label.Label(terminalio.FONT, text=lux_text, x=0, y=4)
 ir_area = label.Label(terminalio.FONT, text=ir_text, x=0, y=14)
 counts_area = label.Label(terminalio.FONT, text=counts_text, x=0, y=24)
+cpuTemp_area = label.Label(terminalio.FONT, text=cpu_temp_text, x=0, y=34)
 
 splash.append(lux_area)
 splash.append(ir_area)
 splash.append(counts_area)
+splash.append(cpuTemp_area)
 
 """
 Main code or runtime area
@@ -98,19 +107,29 @@ Main code or runtime area
 (I don't know how to use the buttons yet)
 
 """
-#
+
+pixel.fill((0, 0, 255))     # Change neopixel to red before while
 
 while True:
+    
+    pixel.fill(((0, 255, 0)))           # Change neopixel to green at end of while
+    pixel.brightness = 0.2
 
     # Read-in lux/IR/and visible counts
-    lux = tsl.lux
+    lux = int(tsl.lux)          # Data is read-in as a float, so convert to int to make it pretty
     ir = tsl.infrared
     counts = tsl.full_spectrum
+
+    # Tossing in CPU temp read for S's & G's
+    cpuTemp = int(microcontroller.cpu.temperature)
 
     # Update display
     lux_area.text = lux_text + str(lux)
     ir_area.text = ir_text + str(ir)
     counts_area.text = counts_text + str(counts)
+    cpuTemp_area.text = cpu_temp_text + str(cpuTemp)
+
+    pixel.brightness = 0.6
 
     # Do every second
     time.sleep(1.0)
