@@ -24,7 +24,8 @@ testing sensor data aquisition
 """
 
 import board                                # Currently set to the Feather RP2040
-import time                                 # for sleep function
+import time                                 # gives you time/sleep finctions
+import digitalio                            # Controls IO pins
 import microcontroller                      # lib for reading rp2040 stuff
 import neopixel                             # Controlling the NeoPixel on board
 import displayio                            # OLED Coms
@@ -35,6 +36,7 @@ from adafruit_display_text import label     # displaying text on the OLED
 
 """
 Initialize the i2c components
+and GPIO for buttons
 
 1) OLED
 2) TSL Sensor
@@ -52,6 +54,15 @@ display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
 # Initialize the Light sensor
 tsl = adafruit_tsl2591.TSL2591(i2c)
 
+# Define the digital IO pins
+pb_a = digitalio.DigitalInOut(board.A1)
+pb_b = digitalio.DigitalInOut(board.A2)
+pb_c = digitalio.DigitalInOut(board.A3)
+
+# set pins to pull-up
+pb_a.switch_to_input(pull=digitalio.Pull.UP)
+pb_b.switch_to_input(pull=digitalio.Pull.UP)
+pb_c.switch_to_input(pull=digitalio.Pull.UP)
 
 """
 Initialize the display & Define label(text) areas
@@ -71,15 +82,16 @@ pixel.brightness = 0.3
 # Initalize display
 display = adafruit_displayio_sh1107.SH1107(display_bus, width=128, height=64)
 
-# define "splash"
-splash = displayio.Group()
-display.show(splash)
+# define "page1"
+page1 = displayio.Group()
+display.show(page1)
 
 # Define strings for display
 lux_text = "Lux: "
 ir_text = "IR: "
 counts_text = "Raw Counts: "
 cpu_temp_text = "CPU Temp: "
+cpu_freq_text = "CPU Freq: "
 
 # Make text areas for displaying senssor info
 #   Lux, IR, Raw Counts
@@ -87,11 +99,13 @@ lux_area = label.Label(terminalio.FONT, text=lux_text, x=0, y=4)
 ir_area = label.Label(terminalio.FONT, text=ir_text, x=0, y=14)
 counts_area = label.Label(terminalio.FONT, text=counts_text, x=0, y=24)
 cpuTemp_area = label.Label(terminalio.FONT, text=cpu_temp_text, x=0, y=34)
+cpuFreq_area = label.Label(terminalio.FONT, text=cpu_freq_text, x=0, y=44)
 
-splash.append(lux_area)
-splash.append(ir_area)
-splash.append(counts_area)
-splash.append(cpuTemp_area)
+page1.append(lux_area)
+page1.append(counts_area)
+page1.append(ir_area)
+page1.append(cpuTemp_area)
+page1.append(cpuFreq_area)
 
 """
 Main code or runtime area
@@ -108,28 +122,32 @@ Main code or runtime area
 
 """
 
-pixel.fill((0, 0, 255))     # Change neopixel to red before while
+pixel.fill((0, 0, 255))     # Change neopixel to blue before while
 
 while True:
-    
+
     pixel.fill(((0, 255, 0)))           # Change neopixel to green at end of while
-    pixel.brightness = 0.2
+    pixel.brightness = 0.1
 
     # Read-in lux/IR/and visible counts
-    lux = int(tsl.lux)          # Data is read-in as a float, so convert to int to make it pretty
+    lux = int(tsl.lux)          # Data is read-in as a float, so convert to int
     ir = tsl.infrared
     counts = tsl.full_spectrum
 
     # Tossing in CPU temp read for S's & G's
     cpuTemp = int(microcontroller.cpu.temperature)
 
+    # Also adding in CPU Freq
+    cpuFreq = microcontroller.cpu.frequency
+
     # Update display
     lux_area.text = lux_text + str(lux)
     ir_area.text = ir_text + str(ir)
     counts_area.text = counts_text + str(counts)
-    cpuTemp_area.text = cpu_temp_text + str(cpuTemp)
+    cpuTemp_area.text = cpu_temp_text + str(cpuTemp) + "C"
+    cpuFreq_area.text = cpu_freq_text + str(cpuFreq)[:3] + "Hz"
 
-    pixel.brightness = 0.6
+    pixel.brightness = 0.2
 
     # Do every second
     time.sleep(1.0)
