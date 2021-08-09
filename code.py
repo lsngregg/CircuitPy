@@ -9,17 +9,14 @@ So this is where we're going to put together the "main" code for utilizing
 2) Adafruit 128x64 OLED Featherwing
 3) Adafruit TSL2591 Light Sensor
 
- Right now, i think the idea will be to initialize the display
-    and make sure that is working before tyring to pull info
-    from the light sensor.
-
 - 8/8/21 -
 
-Formatting changes
+Added in CPU temp, CPU Frequency
+Even added in units to the end of the readings
 
-Setting up labels for displaying sensor data
-
-testing sensor data aquisition
+started setting up DIO pins.
+I want to see if I can get the buttons on the display to
+"change pages." 
 
 """
 
@@ -125,29 +122,34 @@ Main code or runtime area
 pixel.fill((0, 0, 255))     # Change neopixel to blue before while
 
 while True:
+    if not pb_b.value:
 
-    pixel.fill(((0, 255, 0)))           # Change neopixel to green at end of while
-    pixel.brightness = 0.1
+        pixel.fill(((0, 255, 0)))           # Change neopixel to green
+        pixel.brightness = 0.1              # Dim led to signal begin of DAQ
 
-    # Read-in lux/IR/and visible counts
-    lux = int(tsl.lux)          # Data is read-in as a float, so convert to int
-    ir = tsl.infrared
-    counts = tsl.full_spectrum
+        # Read-in lux/IR/and visible counts
+        lux = int(tsl.lux)          # Data is read-in as a float, so convert to int
+        ir = tsl.infrared
+        counts = tsl.full_spectrum
 
-    # Tossing in CPU temp read for S's & G's
-    cpuTemp = int(microcontroller.cpu.temperature)
+        # Tossing in CPU temp read for S's & G's
+        cpuTemp = int(microcontroller.cpu.temperature)
 
-    # Also adding in CPU Freq
-    cpuFreq = microcontroller.cpu.frequency
+        # Also adding in CPU Freq
+        cpuFreq = microcontroller.cpu.frequency
 
-    # Update display
-    lux_area.text = lux_text + str(lux)
-    ir_area.text = ir_text + str(ir)
-    counts_area.text = counts_text + str(counts)
-    cpuTemp_area.text = cpu_temp_text + str(cpuTemp) + "C"
-    cpuFreq_area.text = cpu_freq_text + str(cpuFreq)[:3] + "Hz"
+        # Update display
+        # This involves converting int's to srt in order to add them
+        #   to the text strings on the display
+        lux_area.text = lux_text + str(lux)
+        ir_area.text = ir_text + str(ir)
+        counts_area.text = counts_text + str(counts)
+        cpuTemp_area.text = cpu_temp_text + str(cpuTemp) + "C"
+        cpuFreq_area.text = cpu_freq_text + str(cpuFreq)[:3] + "Hz"
 
-    pixel.brightness = 0.2
+    else:
 
-    # Do every second
-    time.sleep(1.0)
+        # LED is brighter when "out of loop"
+        pixel.brightness = 0.2
+        # Monitor for button press fast AF
+        time.sleep(0.1)
