@@ -9,14 +9,20 @@ So this is where we're going to put together the "main" code for utilizing
 2) Adafruit 128x64 OLED Featherwing
 3) Adafruit TSL2591 Light Sensor
 
-- 8/8/21 -
+- 9/27/21 - 
+    Started separating the pages
+    Page 1 will be just Lux and IR measurements
+    Page 2 will be Raw counts and CPU stats
 
-Added in CPU temp, CPU Frequency
-Even added in units to the end of the readings
+    I need to figure out how the main loop will run.
+    I also need to bite the bullet and buy just the RP2040 itself.
+    I can't do interrupts, I can't do threading with the CircuitPython lib.
 
-started setting up DIO pins.
-I want to see if I can get the buttons on the display to
-"change pages." 
+- 11/16/21 -
+     Soldered on stacking headers
+     Reprogrammed buttons on display
+     Broke the display, but not completely.
+     Going to figure out where i can use the display.
 
 """
 
@@ -52,14 +58,17 @@ display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
 tsl = adafruit_tsl2591.TSL2591(i2c)
 
 # Define the digital IO pins
-pb_a = digitalio.DigitalInOut(board.A1)
-pb_b = digitalio.DigitalInOut(board.A2)
-pb_c = digitalio.DigitalInOut(board.A3)
+pb_a = digitalio.DigitalInOut(board.D5)
+pb_b = digitalio.DigitalInOut(board.D6)
+pb_c = digitalio.DigitalInOut(board.D9)
 
-# set pins to pull-up
+#  set pins to pull-up
 pb_a.switch_to_input(pull=digitalio.Pull.UP)
 pb_b.switch_to_input(pull=digitalio.Pull.UP)
 pb_c.switch_to_input(pull=digitalio.Pull.UP)
+
+# define page variable
+# page = int(0)
 
 """
 Initialize the display & Define label(text) areas
@@ -67,8 +76,9 @@ Initialize the display & Define label(text) areas
 End goal is to display the Lux/IR/and maybe raw luminosity
 
     Bonus: add a battery level at top right corner
+    * this requires MAKING a current-loop ADC circuit *
 
-    Bouns Round 2: utilize the display buttons to maybe cycle
+    Future: utilize the display buttons to maybe cycle
         through other sensor data
 
 """
@@ -79,30 +89,44 @@ pixel.brightness = 0.3
 # Initalize display
 display = adafruit_displayio_sh1107.SH1107(display_bus, width=128, height=64)
 
+### PAGE 1 ####
+
 # define "page1"
 page1 = displayio.Group()
-display.show(page1)
 
-# Define strings for display
+# Define strings for display (page1)
 lux_text = "Lux: "
 ir_text = "IR: "
+
+# Make text areas for displaying senssor info
+#   Lux, IR, Raw Counts
+lux_area = label.Label(terminalio.FONT, text=lux_text, x=64, y=4)
+ir_area = label.Label(terminalio.FONT, text=ir_text, x=64, y=14)
+
+page1.append(lux_area)
+page1.append(ir_area)
+
+### PAGE 2 ###
+
+# define page2
+page2 = displayio.Group()
+
+# Define strings for page2
 counts_text = "Raw Counts: "
 cpu_temp_text = "CPU Temp: "
 cpu_freq_text = "CPU Freq: "
 
-# Make text areas for displaying senssor info
-#   Lux, IR, Raw Counts
-lux_area = label.Label(terminalio.FONT, text=lux_text, x=0, y=4)
-ir_area = label.Label(terminalio.FONT, text=ir_text, x=0, y=14)
+# Make text areas for page2
 counts_area = label.Label(terminalio.FONT, text=counts_text, x=0, y=24)
 cpuTemp_area = label.Label(terminalio.FONT, text=cpu_temp_text, x=0, y=34)
 cpuFreq_area = label.Label(terminalio.FONT, text=cpu_freq_text, x=0, y=44)
 
-page1.append(lux_area)
-page1.append(counts_area)
-page1.append(ir_area)
-page1.append(cpuTemp_area)
-page1.append(cpuFreq_area)
+page2.append(counts_area)
+page2.append(cpuTemp_area)
+page2.append(cpuFreq_area)
+
+# Draw the display on the display
+display.show(page1)
 
 """
 Main code or runtime area
@@ -133,10 +157,10 @@ while True:
         counts = tsl.full_spectrum
 
         # Tossing in CPU temp read for S's & G's
-        cpuTemp = int(microcontroller.cpu.temperature)
+#        cpuTemp = int(microcontroller.cpu.temperature)
 
         # Also adding in CPU Freq
-        cpuFreq = microcontroller.cpu.frequency
+#        cpuFreq = microcontroller.cpu.frequency
 
         # Update display
         # This involves converting int's to srt in order to add them
@@ -144,8 +168,8 @@ while True:
         lux_area.text = lux_text + str(lux)
         ir_area.text = ir_text + str(ir)
         counts_area.text = counts_text + str(counts)
-        cpuTemp_area.text = cpu_temp_text + str(cpuTemp) + "C"
-        cpuFreq_area.text = cpu_freq_text + str(cpuFreq)[:3] + "Hz"
+#        cpuTemp_area.text = cpu_temp_text + str(cpuTemp) + "C"
+#        cpuFreq_area.text = cpu_freq_text + str(cpuFreq)[:3] + "Hz"
 
     else:
 
