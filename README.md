@@ -26,6 +26,7 @@ DWN - Cycle between Av, Tv, P, ISO priority
 REC - Take light measurement
 
 ### Nov 2021 Update
+![](https://raw.githubusercontent.com/lsngregg/CircuitPy/main/images/PXL_20211117_200051777.jpg)
   - Major overhaul to directories.
   - I broke my display, so we've rotated "270" degrees and moved boxed around.
   - "code.py" is just where I have different "pages" setup and button presses to switch/update them.
