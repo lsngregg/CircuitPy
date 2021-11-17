@@ -101,7 +101,18 @@ ir_area = label.Label(terminalio.FONT, text=ir_text, x=4, y=66)
 Main_Page.append(lux_area)
 Main_Page.append(ir_area)
 
-#Button press calls a "get measurement routine"
-
 # Draw the display on the display
 display.show(Main_Page)
+#Button press calls a "get measurement routine"
+
+while True:
+    if not pb_b.value:
+        pixel.fill(((0, 255, 0)))
+
+        getMeasurement()
+
+    else:
+        time.sleep(0.1)
+
+
+
