@@ -87,22 +87,30 @@ pixel = neopixel.NeoPixel(board.NEOPIXEL, 1)
 pixel.brightness = 0.3
 
 # Initalize display
-display = adafruit_displayio_sh1107.SH1107(display_bus, width=128, height=64)
+display = adafruit_displayio_sh1107.SH1107(display_bus, rotation=270, width=64, height=128,)
 
 ### PAGE 1 ####
 
 # define "page1"
 page1 = displayio.Group()
 
+# Draw some lines to break up the screen
+line1 = displayio.Bitmap(64, 1, 1)
+line1_color = displayio.Palette(1)
+line1_color[0] = 0xFFFFFF
+line1area = displayio.TileGrid(line1, pixel_shader=line1_color, x=1, y=45)
+
 # Define strings for display (page1)
 lux_text = "Lux: "
 ir_text = "IR: "
 
 # Make text areas for displaying senssor info
-#   Lux, IR, Raw Counts
-lux_area = label.Label(terminalio.FONT, text=lux_text, x=64, y=4)
-ir_area = label.Label(terminalio.FONT, text=ir_text, x=64, y=14)
+#   Lux, IR
+lux_area = label.Label(terminalio.FONT, text=lux_text, x=4, y=52)
+ir_area = label.Label(terminalio.FONT, text=ir_text, x=4, y=66)
 
+
+page1.append(line1area)
 page1.append(lux_area)
 page1.append(ir_area)
 
@@ -177,3 +185,4 @@ while True:
         pixel.brightness = 0.2
         # Monitor for button press fast AF
         time.sleep(0.1)
+
