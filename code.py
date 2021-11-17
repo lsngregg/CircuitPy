@@ -55,33 +55,20 @@ i2c = board.I2C()
 display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
 
 # Initialize the Light sensor
-tsl = adafruit_tsl2591.TSL2591(i2c)
+sensor = adafruit_tsl2591.TSL2591(i2c)
 
 # Define the digital IO pins
-pb_a = digitalio.DigitalInOut(board.D5)
+#   for built-in buttons on OLED
+pb_a = digitalio.DigitalInOut(board.D9)
 pb_b = digitalio.DigitalInOut(board.D6)
-pb_c = digitalio.DigitalInOut(board.D9)
+pb_c = digitalio.DigitalInOut(board.D5)
 
 #  set pins to pull-up
 pb_a.switch_to_input(pull=digitalio.Pull.UP)
 pb_b.switch_to_input(pull=digitalio.Pull.UP)
 pb_c.switch_to_input(pull=digitalio.Pull.UP)
 
-# define page variable
-# page = int(0)
 
-"""
-Initialize the display & Define label(text) areas
-
-End goal is to display the Lux/IR/and maybe raw luminosity
-
-    Bonus: add a battery level at top right corner
-    * this requires MAKING a current-loop ADC circuit *
-
-    Future: utilize the display buttons to maybe cycle
-        through other sensor data
-
-"""
 # define the neopixel
 pixel = neopixel.NeoPixel(board.NEOPIXEL, 1)
 pixel.brightness = 0.3
@@ -89,100 +76,135 @@ pixel.brightness = 0.3
 # Initalize display
 display = adafruit_displayio_sh1107.SH1107(display_bus, rotation=270, width=64, height=128,)
 
+""""
+Here is where we are defining the different pages as fucntions to call
+in the "Main routine"
+
+Page 1: This will have our "raw data" from the TSL light sensor.
+
+Page 2: This will just be to test out a page-switching routine.
+        It will include some board-level parameters for testing
+
+"""
+
 ### PAGE 1 ####
 
-# define "page1"
-page1 = displayio.Group()
+def Page_1():
 
-# Draw some lines to break up the screen
-line1 = displayio.Bitmap(64, 1, 1)
-line1_color = displayio.Palette(1)
-line1_color[0] = 0xFFFFFF
-line1area = displayio.TileGrid(line1, pixel_shader=line1_color, x=1, y=45)
+    page = displayio.Group()
 
-# Define strings for display (page1)
-lux_text = "Lux: "
-ir_text = "IR: "
+    # Draw some lines to break up the screen
+    line1 = displayio.Bitmap(64, 1, 1)
+    line1_color = displayio.Palette(1)
+    line1_color[0] = 0xFFFFFF
+    line1area = displayio.TileGrid(line1, pixel_shader=line1_color, x=1, y=45)
+    page.append(line1area)
+  
+    # Define strings for display (page1)
+    lux_text = "Lux: "
+    ir_text = "IR: "
 
-# Make text areas for displaying senssor info
-#   Lux, IR
-lux_area = label.Label(terminalio.FONT, text=lux_text, x=4, y=52)
-ir_area = label.Label(terminalio.FONT, text=ir_text, x=4, y=66)
+    # Make text areas for displaying senssor info
+    #   Lux, IR
+    lux_area = label.Label(terminalio.FONT, text=lux_text, x=4, y=52)
+    ir_area = label.Label(terminalio.FONT, text=ir_text, x=4, y=66)
 
 
-page1.append(line1area)
-page1.append(lux_area)
-page1.append(ir_area)
+
+    page.append(lux_area)
+    page.append(ir_area)
+
+            # Read-in lux/IR/and visible counts
+    lux = int(sensor.lux)          # Data is read-in as a float, so convert to int
+    ir = sensor.infrared
+
+    # Update display
+    # This involves converting int's to srt in order to add them
+    #   to the text strings on the display
+    lux_area.text = lux_text + str(lux)
+    ir_area.text = ir_text + str(ir)
+
+    # Draw the display on the display
+    display.show(page)
 
 ### PAGE 2 ###
 
-# define page2
-page2 = displayio.Group()
+def Page_2():
+    # define page2
+    page = displayio.Group()
+    # Draw some lines to break up the screen
+    line1 = displayio.Bitmap(64, 1, 1)
+    badbox = displayio.Bitmap(64,41,1)
+    line1_color = displayio.Palette(1)
+    line1_color[0] = 0xFFFFFF
+    line1area = displayio.TileGrid(line1, pixel_shader=line1_color, x=1, y=45)
+    badbox_area = displayio.TileGrid(badbox, pixel_shader=line1_color, x=0, y=0)
+    page.append(line1area)
+    page.append(badbox_area)
 
-# Define strings for page2
-counts_text = "Raw Counts: "
-cpu_temp_text = "CPU Temp: "
-cpu_freq_text = "CPU Freq: "
+    # Define strings for page2
+    counts_text = "Raw Counts: \n"
+    cpu_temp_text = "CPU Temp: \n"
+    cpu_freq_text = "CPU Freq: \n"
 
-# Make text areas for page2
-counts_area = label.Label(terminalio.FONT, text=counts_text, x=0, y=24)
-cpuTemp_area = label.Label(terminalio.FONT, text=cpu_temp_text, x=0, y=34)
-cpuFreq_area = label.Label(terminalio.FONT, text=cpu_freq_text, x=0, y=44)
+    # Make text areas for page2
+    counts_area = label.Label(terminalio.FONT, text=counts_text, x=0, y=52)
+    cpuTemp_area = label.Label(terminalio.FONT, text=cpu_temp_text, x=0, y=64)
+    cpuFreq_area = label.Label(terminalio.FONT, text=cpu_freq_text, x=0, y=74)
 
-page2.append(counts_area)
-page2.append(cpuTemp_area)
-page2.append(cpuFreq_area)
+    page.append(counts_area)
+    page.append(cpuTemp_area)
+    page.append(cpuFreq_area)
 
-# Draw the display on the display
-display.show(page1)
+    # Tossing in CPU temp read for S's & G's
+    cpuTemp = int(microcontroller.cpu.temperature)
+
+    # Also adding in CPU Freq
+    cpuFreq = microcontroller.cpu.frequency
+
+    cpuTemp_area.text = cpu_temp_text + str(cpuTemp) + "C"
+    cpuFreq_area.text = cpu_freq_text + str(cpuFreq)[:3] + "Hz"
+
+    # Draw the display on the display
+    display.show(page)
+
 
 """
 Main code or runtime area
-    This is where the sensor data aquistion will happen
-    and where we will update the label text.
 
-    Fun fact: you can't pass/append int's to labels.
+Button "B" calls Page_1
+Button "A" calls Page_2
 
-1) Get the sensor data
-2) Update the display
-3) Wait for button press before taking another reading
-
-(I don't know how to use the buttons yet)
+Holding either button continues to call the page function
+and continutes to update until released
 
 """
+# Array for page selection?
 
-pixel.fill((0, 0, 255))     # Change neopixel to blue before while
+# clear display
+
+# Change neopixel to blue before while-loop
+pixel.fill((0, 0, 255))
 
 while True:
     if not pb_b.value:
 
         pixel.fill(((0, 255, 0)))           # Change neopixel to green
         pixel.brightness = 0.1              # Dim led to signal begin of DAQ
+        
+        Page_1()                            # "Call" page 1 function on button press
 
-        # Read-in lux/IR/and visible counts
-        lux = int(tsl.lux)          # Data is read-in as a float, so convert to int
-        ir = tsl.infrared
-        counts = tsl.full_spectrum
+    elif not pb_a.value:
 
-        # Tossing in CPU temp read for S's & G's
-#        cpuTemp = int(microcontroller.cpu.temperature)
+        pixel.fill(((255, 0, 0)))
+        pixel.brightness = 0.1
 
-        # Also adding in CPU Freq
-#        cpuFreq = microcontroller.cpu.frequency
-
-        # Update display
-        # This involves converting int's to srt in order to add them
-        #   to the text strings on the display
-        lux_area.text = lux_text + str(lux)
-        ir_area.text = ir_text + str(ir)
-        counts_area.text = counts_text + str(counts)
-#        cpuTemp_area.text = cpu_temp_text + str(cpuTemp) + "C"
-#        cpuFreq_area.text = cpu_freq_text + str(cpuFreq)[:3] + "Hz"
+        Page_2()
 
     else:
 
         # LED is brighter when "out of loop"
         pixel.brightness = 0.2
         # Monitor for button press fast AF
-        time.sleep(0.1)
+        time.sleep(0.01)
 

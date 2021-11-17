@@ -24,3 +24,9 @@ UP - Cycle between Av, Tv, P, ISO priority
 SEL - hold to change mode
 DWN - Cycle between Av, Tv, P, ISO priority
 REC - Take light measurement
+
+### Nov 2021 Update
+  - Major overhaul to directories.
+  - I broke my display, so we've rotated "270" degrees and moved boxed around.
+  - "code.py" is just where I have different "pages" setup and button presses to switch/update them.
+  - lightmeter-beta.py will be where my main code for the end-goal (a functioning light meter) will live.
