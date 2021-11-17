@@ -61,7 +61,16 @@ pixel.brightness = 0.1
 Exposure calculation routines
 
 """
-def 
+def getMeasurement():
+    # Read-in lux/IR/and visible counts
+    lux = int(sensor.lux)          # Data is read-in as a float, so convert to int
+    ir = sensor.infrared
+
+    # Update display
+    # This involves converting int's to srt in order to add them
+    #   to the text strings on the display
+    lux_area.text = lux_text + str(lux)
+    ir_area.text = ir_text + str(ir)
 
 
 
