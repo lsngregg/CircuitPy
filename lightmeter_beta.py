@@ -7,8 +7,8 @@ The beginning of my attempt at a light meter.
 
 import board                                # Currently set to the Feather RP2040
 import time                                 # gives you time/sleep finctions
+import fractions
 import digitalio                            # Controls IO pins
-import microcontroller                      # lib for reading rp2040 stuff
 import neopixel                             # Controlling the NeoPixel on board
 import displayio                            # OLED Coms
 import terminalio                           # font?
@@ -66,16 +66,17 @@ fstops = [0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.5, 2.8, 3.2, 3.
 shutterSpeeds = [1/8000, 1/6400, 1/5000, 1/4000, 1/3200, 1/2500, 1/2000, 1/1600, 1/1250, 1/1000, 1/800, 1/640, 1/500, 1/400, 1/320, 1/250, 1/200, 1/160, 1/125, 1/100, 1/80, 1/60, 1/50, 1/40, 1/30, 1/25, 1/20, 1/15, 1/13, 1/10, 1/8, 1/6, 1/5, 1/4, 0.3, 0.4, 0.5, 0.6, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5]
 isos = [50, 100, 125, 160, 200, 250, 320, 400, 500, 640, 800, 1000, 1250, 1600, 2000, 2500, 3200, 4000, 5000, 6400, 12800, 25600]
 
-
-
 def getMeasurement():
     global lux_value
     global lux_value_area
     global ISO_text
+    global ISO_area
     global f_stop_text
-    global shutter_text
+    global f_stop_area
     global shutter_value
+    global shutter_value_area
     global ev_value
+    global ev_value_area
     
 
     # Read-in lux from sensor
@@ -83,7 +84,14 @@ def getMeasurement():
     lux_value_area.text = lux_value + str(lux)      # Add text to the text area on screen
 
     # testing adding array value to display
+    ISO_value = isos[7]
+    ISO_area.text = ISO_text + str(ISO_value)
 
+    f_stop_value = fstops[12]
+    f_stop_area.text = f_stop_text + str(f_stop_value)
+
+    shutter_value = fractions.Fraction(shutterSpeeds[12])
+    shutter_value_area.text = str(shutter_value)
 
 
 """
@@ -93,8 +101,18 @@ Main page routine?
 """
 
 def MAIN_PAGE():
+
     global lux_value
     global lux_value_area
+    global ISO_text
+    global ISO_area
+    global f_stop_text
+    global f_stop_area
+    global shutter_value
+    global shutter_value_area
+    global ev_value
+    global ev_value_area
+
     #change neopixel to blue to know we've hit "main"
     pixel.fill(((0, 0, 255)))
 
@@ -122,10 +140,10 @@ def MAIN_PAGE():
     Main_Page.append(line3area)
   
 # Define strings for display (Main_Page)
-    ISO_text = "ISO: XXXX"
-    f_stop_text = "f/X.X"
+    ISO_text = "ISO: "
+    f_stop_text = "f/"
     shutter_text = "T:"
-    shutter_value = "X/XXXX"
+    shutter_value = ""
     ev_value = "EV: XX.X"
     lux_value = "Lux: "
 
