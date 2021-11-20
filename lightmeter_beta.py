@@ -154,6 +154,8 @@ def MAIN_PAGE():
     shutter_text_area = label.Label(terminalio.FONT, text=shutter_text, x=2, y=80)
     shutter_value_area = label.Label(terminalio.FONT, text=shutter_value, x=2, y=94)
 
+# Still has space at the bottom of display, so I added a spot for calculated EV
+#   and "raw" Lux measurement from sensor
     ev_value_area = label.Label(terminalio.FONT, text=ev_value, x=2, y=108)
     lux_value_area = label.Label(terminalio.FONT, text=lux_value, x=2, y=118)
 
