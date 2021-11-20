@@ -7,7 +7,6 @@ The beginning of my attempt at a light meter.
 
 import board                                # Currently set to the Feather RP2040
 import time                                 # gives you time/sleep finctions
-import fractions
 import digitalio                            # Controls IO pins
 import neopixel                             # Controlling the NeoPixel on board
 import displayio                            # OLED Coms
@@ -63,10 +62,11 @@ Exposure calculation routines
 """
 # Manual list of apetures, speeds and ISOs at 1/3 stop increments.
 fstops = [0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.5, 2.8, 3.2, 3.5, 4, 4.5, 5.0, 5.6, 6.3, 7.1, 8, 9, 10, 11, 13, 14, 16, 18, 20, 22, 27, 32, 38, 45, 54, 64, 76, 91, 108]
-shutterSpeeds = [1/8000, 1/6400, 1/5000, 1/4000, 1/3200, 1/2500, 1/2000, 1/1600, 1/1250, 1/1000, 1/800, 1/640, 1/500, 1/400, 1/320, 1/250, 1/200, 1/160, 1/125, 1/100, 1/80, 1/60, 1/50, 1/40, 1/30, 1/25, 1/20, 1/15, 1/13, 1/10, 1/8, 1/6, 1/5, 1/4, 0.3, 0.4, 0.5, 0.6, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5]
+shutterSpeeds = ["1/8000", "1/6400", "1/5000", "1/4000", "1/3200", "1/2500", "1/2000", "1/1600", "1/1250", "1/1000", "1/800", "1/640", "1/500", "1/400", "1/320", "1/250", "1/200", "1/160", "1/125", "1/100", "1/80", "1/60", "1/50", "1/40", "1/30", "1/25", "1/20", "1/15", "1/13", "1/10", "1/8", "1/6", "1/5", "1/4", "0.3", "0.4", "0.5", "0.6", "0.8", "1", "1.3", "1.6", "2", "2.5", "3.2", "4", "5"]
 isos = [50, 100, 125, 160, 200, 250, 320, 400, 500, 640, 800, 1000, 1250, 1600, 2000, 2500, 3200, 4000, 5000, 6400, 12800, 25600]
 
 def getMeasurement():
+    
     global lux_value
     global lux_value_area
     global ISO_text
@@ -78,7 +78,6 @@ def getMeasurement():
     global ev_value
     global ev_value_area
     
-
     # Read-in lux from sensor
     lux = int(sensor.lux)                           # Data is read-in as a float, so convert to int
     lux_value_area.text = lux_value + str(lux)      # Add text to the text area on screen
@@ -90,9 +89,8 @@ def getMeasurement():
     f_stop_value = fstops[12]
     f_stop_area.text = f_stop_text + str(f_stop_value)
 
-    shutter_value = fractions.Fraction(shutterSpeeds[12])
+    shutter_value = shutterSpeeds[12]
     shutter_value_area.text = str(shutter_value)
-
 
 """
 
@@ -174,6 +172,22 @@ def MAIN_PAGE():
 def pixel_red():
     pixel.fill(((255,0,0)))
 
+def countUp():
+    count = 0
+    while count <= 20000 & pb_b.value == True:
+        count += 1
+
+        if count == 20000:
+            selectionMode()
+
+        else:
+            getMeasurement()
+    return
+
+# Cycle through parameters to change
+def selectionMode():
+    pixel_red()
+
 #----------------------------------------------------------------------------------------------------
 
 # Start off by calling "MAIN_PAGE" to draw our initial text
@@ -192,17 +206,16 @@ I would very much like for this to work where:
 """
 
 # define a "selection" boolean
-sel = True
 
 # while selection is "True"
-while sel == True:
+while True:
     if not pb_b.value:
         
         #change neopixel to green on button press
         pixel.fill(((0, 255, 0)))
 
         # would very much like to implememnt a "change on hold" fn here
-
+        countUp()
         
         # Call measurement routine which updates display "labels"
         getMeasurement()
@@ -211,4 +224,4 @@ while sel == True:
         pixel.fill(((0, 64, 255)))
 
     else:
-        time.sleep(0.3)
+        time.sleep(0.1)
