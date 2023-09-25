@@ -33,16 +33,16 @@ redLed.low()
 #   RS422/Sony 9-pin
 uart0 = UART(0, baudrate=38400, tx=Pin(0), rx=Pin(1))
 
-record = 0x2002
+record = bytes (b'\x20\x02')
 stop = 0x2000
-
-uart0.write(record)
 
 print('RS422 send test...')
 
 time.sleep(0.1)
 
 while True:
+    redLed.toggle()
     time.sleep(3)
-    redLed.toggle() 
+    redLed.toggle()
+    uart0.write(record)
     print ("recording")
