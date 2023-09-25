@@ -6,6 +6,8 @@ The beginning of my attempt at a light meter.
 """
 
 import board                                # Currently set to the Feather RP2040
+import math
+from typing import List
 import time                                 # gives you time/sleep finctions
 import digitalio                            # Controls IO pins
 import neopixel                             # Controlling the NeoPixel on board
@@ -65,6 +67,25 @@ fstops = [0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.5, 2.8, 3.2, 3.
 shutterSpeeds = ["1/8000", "1/6400", "1/5000", "1/4000", "1/3200", "1/2500", "1/2000", "1/1600", "1/1250", "1/1000", "1/800", "1/640", "1/500", "1/400", "1/320", "1/250", "1/200", "1/160", "1/125", "1/100", "1/80", "1/60", "1/50", "1/40", "1/30", "1/25", "1/20", "1/15", "1/13", "1/10", "1/8", "1/6", "1/5", "1/4", "0.3", "0.4", "0.5", "0.6", "0.8", "1", "1.3", "1.6", "2", "2.5", "3.2", "4", "5"]
 isos = [50, 100, 125, 160, 200, 250, 320, 400, 500, 640, 800, 1000, 1250, 1600, 2000, 2500, 3200, 4000, 5000, 6400, 12800, 25600]
 
+def lux_to_exposure(lux: float) -> float:
+    # Calculate the logarithm of the lux value
+    log_lux = math.log(lux)
+    
+    # Convert the logarithm to an exposure value
+    exposure = log_lux / math.log(2)
+    
+    return exposure
+
+def calculate_iso(exposure: float, iso_values: List[int]) -> int:
+    # Calculate the difference between the exposure value and the logarithm of each ISO value
+    diffs = [abs(exposure - math.log(iso)) for iso in iso_values]
+    
+    # Find the ISO value with the smallest difference from the exposure value
+    closest_iso = iso_values[diffs.index(min(diffs))]
+    
+    return closest_iso
+
+
 def getMeasurement():
     
     global lux_value
@@ -82,8 +103,12 @@ def getMeasurement():
     lux = int(sensor.lux)                           # Data is read-in as a float, so convert to int
     lux_value_area.text = lux_value + str(lux)      # Add text to the text area on screen
 
+    # do EV calculation
+    ev_value = lux_to_exposure(lux)
+    ev_value_area.text = ev_value
+
     # testing adding array value to display
-    ISO_value = isos[7]
+    ISO_value = calculate_iso(ev_value, isos)
     ISO_area.text = ISO_text + str(ISO_value)
 
     f_stop_value = fstops[12]
@@ -92,7 +117,7 @@ def getMeasurement():
     shutter_value = shutterSpeeds[12]
     shutter_value_area.text = str(shutter_value)
 
-### Insert EV math here ###
+    return
 
 
 """
@@ -145,7 +170,7 @@ def MAIN_PAGE():
     f_stop_text = "f/"
     shutter_text = "T:"
     shutter_value = ""
-    ev_value = "EV: XX.X"
+    ev_value = "EV: "
     lux_value = "Lux: "
 
 # Make text areas for displaying senssor info
