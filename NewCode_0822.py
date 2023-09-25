@@ -66,7 +66,7 @@ shutterSpeeds = ["1/8000", "1/6400", "1/5000", "1/4000", "1/3200", "1/2500", "1/
 isos = [50, 100, 125, 160, 200, 250, 320, 400, 500, 640, 800, 1000, 1250, 1600, 2000, 2500, 3200, 4000, 5000, 6400, 12800, 25600]
 
 def getMeasurement():
-    
+
     global lux_value
     global lux_value_area
     global ISO_text
@@ -77,7 +77,7 @@ def getMeasurement():
     global shutter_value_area
     global ev_value
     global ev_value_area
-    
+
     # Read-in lux from sensor
     lux = int(sensor.lux)                           # Data is read-in as a float, so convert to int
     lux_value_area.text = lux_value + str(lux)      # Add text to the text area on screen
@@ -91,9 +91,6 @@ def getMeasurement():
 
     shutter_value = shutterSpeeds[12]
     shutter_value_area.text = str(shutter_value)
-
-### Insert EV math here ###
-
 
 """
 
@@ -139,7 +136,7 @@ def MAIN_PAGE():
     line3_color[0] = 0xFFFFFF
     line3area = displayio.TileGrid(line3, pixel_shader=line3_color, x=1, y=102)
     Main_Page.append(line3area)
-  
+
 # Define strings for display (Main_Page)
     ISO_text = "ISO: "
     f_stop_text = "f/"
@@ -176,18 +173,19 @@ def MAIN_PAGE():
 
 def pixel_red():
     pixel.fill(((255,0,0)))
+    time.sleep(5)
 
+# Main goal atm is to prove a "mode change" fn initiated by holding a button down
 def countUp():
     count = 0
-    while count <= 20000 & pb_b.value == True:
+    while pb_b.value == False:
+        print("counting... ", count)
         count += 1
-
+        
         if count == 20000:
             selectionMode()
-
         else:
-            getMeasurement()
-    return
+            return
 
 # Cycle through parameters to change
 def selectionMode():
@@ -210,23 +208,37 @@ I would very much like for this to work where:
 
 """
 
-# define a "selection" boolean
+# Button Presses 'interrupts'
+# Pressing a button will trigger different events
+# Eventually holding a button should trigger a different event
 
-# while selection is "True"
 while True:
     if not pb_b.value:
-        
-        #change neopixel to green on button press
+
+        # change neopixel to green on button press
         pixel.fill(((0, 255, 0)))
+        
+        # terminal output for showing we are in "main"
+        print("You Pressed B")
 
         # would very much like to implememnt a "change on hold" fn here
         countUp()
-        
+
         # Call measurement routine which updates display "labels"
         getMeasurement()
 
         #change neopixel to xxx after fn call
         pixel.fill(((0, 64, 255)))
+
+    elif not pb_a.value:
+
+        print("You pressed A")
+        time.sleep(0.5)             # Acts like a de-bounce
+
+    elif not pb_c.value:
+
+        print("You pressed C")
+        time.sleep(0.5)             # Acts like a de-bounce
 
     else:
         time.sleep(0.1)
