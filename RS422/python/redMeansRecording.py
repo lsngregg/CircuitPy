@@ -12,6 +12,7 @@ Utilizes MAX485 module and UART
 Red Means Recording
 
 '''
+
 from machine import UART, Pin
 import time
 
@@ -29,21 +30,19 @@ redLed.low()
 #   Low = stop
 
 # Init UART interface for RS422
-#   RS422/GVG 7000
+#   RS422/Sony 9-pin
 uart0 = UART(0, baudrate=38400, tx=Pin(0), rx=Pin(1))
 
-a=0
+record = 0x2002
+stop = 0x2000
 
-txData = b'RS485 send test...\r\n'
+uart0.write(record)
 
-uart0.write(txData)
-
-print('RS485 send test...')
+print('RS422 send test...')
 
 time.sleep(0.1)
+
 while True:
-    a=a+1
-    time.sleep(0.5)
+    time.sleep(3)
     redLed.toggle() 
-    print (a)#shell output
-    uart0.write("{}\r\n".format(a))
+    print ("recording")
